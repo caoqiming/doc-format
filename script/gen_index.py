@@ -118,7 +118,7 @@ def gen_tree(file_list) -> tree:
 def main():
     base = "./doc"
     file_list = findAllFile(base)
-    # docfile.add_head_all(None, file_list)
+    docfile.add_head_all(None, file_list)
     docfile.gen_index(None, file_list)
 
 
