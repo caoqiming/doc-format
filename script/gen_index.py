@@ -81,7 +81,8 @@ class docfile:
 
 def deep_first(p, lines):
     if p.file:
-        lines.append("- [%s](%s)\n" % (p.file.title, p.file.path))
+        path = "./" + p.file.path[6:]  # remove ./doc
+        lines.append("- [%s](%s)\n" % (p.file.title, path))
     else:
         lines.append(
             "\n%s %s\n\n" % ("#" * p.depth, docfile.get_category(None, p.name))
@@ -117,7 +118,7 @@ def gen_tree(file_list) -> tree:
 def main():
     base = "./doc"
     file_list = findAllFile(base)
-    docfile.add_head_all(None, file_list)
+    # docfile.add_head_all(None, file_list)
     docfile.gen_index(None, file_list)
 
 
