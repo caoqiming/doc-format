@@ -5,7 +5,7 @@ destination: ./_site
 # 除了这里base url设为空（这里影响的是自动生成的链接），另外在build后有把结果中冗余的路径消除
 baseurl: "/doc"
 url: "https://caoqiming.github.io"
-theme: just-the-docs
+remote_theme: caoqiming/just-the-docs
 enable_copy_code_button: true
 aux_links: "This is my doc"
 
