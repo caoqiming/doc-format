@@ -81,7 +81,7 @@ class docfile:
 
 def deep_first(p, lines):
     if p.file:
-        path = "./" + p.file.path[6:]  # remove ./doc
+        path = "./" + p.file.path[6:][:-3]  # remove ./doc and .md
         lines.append("- [%s](%s)\n" % (p.file.title, path))
     else:
         lines.append(
