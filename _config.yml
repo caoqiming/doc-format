@@ -3,7 +3,7 @@ destination: ./_site
 # 设置了source为./doc，需要手动把base url改为空，不然路径会变成/doc/doc
 # 一个是库自带的（应该是hosturl上就有一个），一个是根据source自动加的，这里就是为了把后者弄掉
 # 除了这里base url设为空（这里影响的是自动生成的链接），另外在build后有把结果中冗余的路径消除
-baseurl: "doc"
+baseurl: "/doc"
 url: "https://caoqiming.github.io/doc"
 theme: just-the-docs
 enable_copy_code_button: true
