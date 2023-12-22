@@ -24,3 +24,5 @@ exclude:
   ]
 keep_files: [".git", ".svn"]
 encoding: "utf-8"
+plugins:
+  - jekyll-remote-theme
