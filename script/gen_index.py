@@ -85,7 +85,7 @@ class docfile:
 def deep_first_gen_index_file(p):  # 为所有文件夹生成一个索引文件，如果还没有的话
     if not p.file:
         # TODO 检查是否已经有该索引文件，避免覆盖
-        index_path = "%s/%s_category.md" % (p.path, p.name)
+        index_path = "%s/index.md" % (p.path)
         with open(index_path, "w") as f:
             f.write(category_head % (docfile.get_category(None, p.name)))
             lines = []
