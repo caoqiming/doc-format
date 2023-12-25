@@ -17,6 +17,7 @@ title: Home
 category_head = """---
 layout: home
 title: %s
+has_children: true
 ---
 """
 
@@ -24,6 +25,7 @@ category_head_with_parent = """---
 layout: home
 title: %s
 parent: %s
+has_children: true
 ---
 """
 
@@ -42,7 +44,12 @@ class tree:
 
 
 class docfile:
-    category_map = {"speech_scrips": "演讲稿", "data_base": "数据库", "command": "命令"}
+    category_map = {
+        "doc": "目录",
+        "speech_scrips": "演讲稿",
+        "data_base": "数据库",
+        "command": "命令",
+    }
 
     def get_category(self, key):  # 将文件名转化为显示的名字
         if key in docfile.category_map:
