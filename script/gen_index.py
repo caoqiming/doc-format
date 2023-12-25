@@ -3,8 +3,8 @@ import re
 
 default_head = """---
 layout: default
-title: %s
-parent: %s
+title: "%s"
+parent: "%s"
 ---
 """
 
@@ -16,15 +16,15 @@ title: Home
 
 category_head = """---
 layout: home
-title: %s
+title: "%s"
 has_children: true
 ---
 """
 
 category_head_with_parent = """---
 layout: home
-title: %s
-parent: %s
+title: "%s"
+parent: "%s"
 has_children: true
 ---
 """
@@ -72,11 +72,14 @@ class docfile:
     def get_title(self, content):
         pattern = r"^#[^#].*$"
         headings = re.findall(pattern, content, re.MULTILINE)
+        title = ""
         if len(headings) > 0:
             title = headings[0]
-            return re.sub(r"^[#\s]*", "", title)
+            title = re.sub(r"^[#\s]*", "", title)
         else:
-            return self.filename[:-3]
+            title = self.filename[:-3]
+
+        return title
 
     def add_head(self):
         if not self.filename.endswith(".md"):
