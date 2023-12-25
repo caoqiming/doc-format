@@ -9,25 +9,36 @@ parent: %s
 """
 
 home_head = """---
-title: Home
 layout: home
+title: Home
 ---
 """
 
 category_head = """---
-title: %s
 layout: home
+title: %s
+---
+"""
+
+category_head_with_parent = """---
+layout: home
+title: %s
+parent: %s
 ---
 """
 
 
 class tree:
-    def __init__(self, name, path, depth):
+    def __init__(self, name, path, parent):
         self.name = name  # 这里是路径里的文件名
         self.data = {}
         self.file = None
         self.path = path
-        self.depth = depth
+        self.parent = parent
+        if parent:
+            self.depth = self.parent.depth + 1
+        else:
+            self.depth = 1
 
 
 class docfile:
@@ -87,11 +98,25 @@ def deep_first_gen_index_file(p):  # 为所有文件夹生成一个索引文件�
         # TODO 检查是否已经有该索引文件，避免覆盖
         index_path = "%s/index.md" % (p.path)
         with open(index_path, "w") as f:
-            f.write(category_head % (docfile.get_category(None, p.name)))
+            if p.depth <= 2:  # 这一级标题不收起来
+                f.write(category_head % (docfile.get_category(None, p.name)))
+            else:
+                f.write(
+                    category_head_with_parent
+                    % (
+                        docfile.get_category(None, p.name),
+                        docfile.get_category(None, p.parent.name),
+                    )
+                )
+
             lines = []
             deep_first_gen_index_content(p, p.depth, lines)
+            data = ""
             for line in lines:
-                f.write(line)
+                data += line
+            # 如果有连续三个或以上换行，替换为两个
+            data = re.sub("\n{3,}", "\n\n", data)
+            f.write(data)
 
     for k in p.data:
         deep_first_gen_index_file(p.data[k])
@@ -100,7 +125,7 @@ def deep_first_gen_index_file(p):  # 为所有文件夹生成一个索引文件�
 
 def deep_first_gen_index_content(p, base_depth, lines):  # 生成给定节点下的索引文件的内容，储存在lines中
     if p.file:
-        path = "./" + p.file.path[6:][:-3]  # remove ./doc and .md
+        path = p.file.path[1:][:-3]  # remove ./doc and .md
         lines.append("- [%s](%s)\n" % (p.file.title, path))
     else:
         lines.append(
@@ -123,13 +148,13 @@ def findAllFile(base):
 
 
 def gen_tree(file_list) -> tree:
-    root = tree("doc", "./doc", 1)
+    root = tree("doc", "./doc", None)
     for df in file_list:  # df 是文件，不包括文件夹
         p = root
         path_list = df.path.split("/")[2:]  # 取./doc/之后的部分
         for name in path_list:  # p 从root 走到 df对应的文件，把中途缺失的节点都创建出来
             if not name in p.data:
-                p.data[name] = tree(name, p.path + "/" + name, p.depth + 1)
+                p.data[name] = tree(name, p.path + "/" + name, p)
             p = p.data[name]
         p.file = df
     return root
