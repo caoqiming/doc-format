@@ -10,22 +10,23 @@ parent: "%s"
 
 home_head = """---
 layout: home
-title: Home
+title: "%s"
+nav_order: 1
 ---
 """
 
 category_head = """---
-layout: home
+layout: default
 title: "%s"
 has_children: true
 ---
 """
 
 category_head_with_parent = """---
-layout: home
+layout: default
 title: "%s"
 parent: "%s"
-has_children: true
+has_children: %s
 ---
 """
 
@@ -108,14 +109,20 @@ def deep_first_gen_index_file(p):  # 为所有文件夹生成一个索引文件�
         # TODO 检查是否已经有该索引文件，避免覆盖
         index_path = "%s/index.md" % (p.path)
         with open(index_path, "w") as f:
-            if p.depth <= 2:  # 这一级标题不收起来
+            if p.depth == 1:
+                f.write(home_head % (docfile.get_category(None, p.name)))
+            elif p.depth == 2:  # 一级标题不设置parent
                 f.write(category_head % (docfile.get_category(None, p.name)))
             else:
+                has_children = "false"
+                if len(p.data) > 0:
+                    has_children = "true"
                 f.write(
                     category_head_with_parent
                     % (
                         docfile.get_category(None, p.name),
                         docfile.get_category(None, p.parent.name),
+                        has_children,
                     )
                 )
 
