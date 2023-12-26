@@ -8,6 +8,14 @@ parent: "%s"
 ---
 """
 
+default_head_with_grand_parent = """---
+layout: default
+title: "%s"
+parent: "%s"
+grand_parent: "%s"
+---
+"""
+
 home_head = """---
 layout: home
 title: "%s"
@@ -42,6 +50,12 @@ class tree:
             self.depth = self.parent.depth + 1
         else:
             self.depth = 1
+
+    def get_parent_title(self):
+        return docfile.get_category(None, self.parent.name)
+
+    def get_grand_parent_title(self):
+        return docfile.get_category(None, self.parent.parent.name)
 
 
 class docfile:
@@ -81,27 +95,6 @@ class docfile:
             title = self.filename[:-3]
 
         return title
-
-    def add_head(self):
-        if not self.filename.endswith(".md"):
-            return
-        with open(self.path, "r+") as f:
-            # 将文件指针移动到文件开头
-            f.seek(0)
-            old_content = f.read()
-            # 将新内容添加到文件开头
-            f.seek(0)
-            f.write(default_head % (self.title, self.parent))
-            f.write(old_content)
-
-    def add_head_all(self, file_list):
-        for df in file_list:
-            df.add_head()
-
-    def gen_index(self, file_list):
-        r = gen_tree(file_list)
-        # 为每个文件夹生成一个索引文件，以构建左边的导航栏
-        deep_first_gen_index_file(r)
 
 
 def deep_first_gen_index_file(p):  # 为所有文件夹生成一个索引文件，如果还没有的话
@@ -154,6 +147,28 @@ def deep_first_gen_index_content(p, base_depth, lines):  # 生成给定节点下
         deep_first_gen_index_content(p.data[k], base_depth, lines)
 
 
+def deep_first_add_head(p: tree):  # 给md文件添加头
+    if p.file and p.file.filename.endswith(".md"):
+        with open(p.file.path, "r+") as f:
+            # 将文件指针移动到文件开头
+            f.seek(0)
+            old_content = f.read()
+            # 将新内容添加到文件开头
+            f.seek(0)
+            if p.depth == 4:  # 目前目录只支持三层，depth 2 对应1级标题，因此depth 4 对应三级标题
+                f.write(
+                    default_head_with_grand_parent
+                    % (p.file.title, p.get_parent_title(), p.get_grand_parent_title())
+                )
+            else:
+                f.write(default_head % (p.file.title, p.get_parent_title()))
+
+            f.write(old_content)
+
+    for k in p.data:
+        deep_first_add_head(p.data[k])
+
+
 def findAllFile(base):
     file_list = []
     for root, ds, fs in os.walk(base):
@@ -180,8 +195,9 @@ def gen_tree(file_list) -> tree:
 def main():
     base = "./doc"
     file_list = findAllFile(base)
-    docfile.add_head_all(None, file_list)
-    docfile.gen_index(None, file_list)
+    r = gen_tree(file_list)
+    deep_first_add_head(r)
+    deep_first_gen_index_file(r)
 
 
 if __name__ == "__main__":
