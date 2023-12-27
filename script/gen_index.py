@@ -60,7 +60,7 @@ class tree:
 
 class docfile:
     category_map = {
-        "doc": "目录",
+        "doc": "Home",
         "speech_scrips": "演讲稿",
         "data_base": "数据库",
         "command": "命令",
@@ -98,9 +98,8 @@ class docfile:
 
 
 def deep_first_gen_index_file(p):  # 为所有文件夹生成一个索引文件，如果还没有的话
-    if not p.file:
-        # TODO 检查是否已经有该索引文件，避免覆盖
-        index_path = "%s/index.md" % (p.path)
+    index_path = "%s/index.md" % (p.path)
+    if not p.file and not os.path.exists(index_path):  # 是文件夹且没有index文件则自动生成
         with open(index_path, "w") as f:
             if p.depth == 1:
                 f.write(home_head % (docfile.get_category(None, p.name)))
