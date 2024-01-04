@@ -64,6 +64,8 @@ class docfile:
         "speech_scrips": "演讲稿",
         "data_base": "数据库",
         "command": "命令",
+        "encoding_schemes": "编码",
+        "machine_learning": "机器学习",
     }
 
     def get_category(self, key):  # 将文件名转化为显示的名字
