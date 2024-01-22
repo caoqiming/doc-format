@@ -66,6 +66,7 @@ class docfile:
         "command": "命令",
         "encoding_schemes": "编码",
         "machine_learning": "机器学习",
+        "else": "杂项",
     }
 
     def get_category(self, key):  # 将文件名转化为显示的名字
