@@ -8,7 +8,8 @@ url: "https://caoqiming.github.io"
 remote_theme: caoqiming/just-the-docs
 enable_copy_code_button: true
 aux_links: "This is my doc"
-title: "My notes, that's it"
+title: "Glimmer's notes"
+color_scheme: legacy_light
 
 # Handling Reading
 safe: false
