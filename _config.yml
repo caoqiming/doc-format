@@ -9,7 +9,12 @@ remote_theme: caoqiming/just-the-docs
 enable_copy_code_button: true
 aux_links: "This is my doc"
 title: "Glimmer's notes"
-color_scheme: legacy_light
+color_scheme: dark
+
+# 代码html渲染问题
+compress_html:
+  ignore:
+    envs: all
 
 # Handling Reading
 safe: false
