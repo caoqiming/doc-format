@@ -16,16 +16,19 @@ grand_parent: "%s"
 ---
 """
 
+# 生成的home页面的头，没有子页面
 home_head = """---
 layout: home
 title: "%s"
-nav_order: 1
+nav_order: %s
 ---
 """
 
+# 生成的目录的头，都有子页面，且有排序
 category_head = """---
 layout: default
 title: "%s"
+nav_order: %s
 has_children: true
 ---
 """
@@ -33,7 +36,18 @@ has_children: true
 category_head_with_parent = """---
 layout: default
 title: "%s"
+nav_order: %s
 parent: "%s"
+has_children: %s
+---
+"""
+
+category_head_with_grand_parent = """---
+layout: default
+title: "%s"
+nav_order: %s
+parent: "%s"
+grand_parent: "%s"
 has_children: %s
 ---
 """
@@ -51,6 +65,12 @@ class tree:
         else:
             self.depth = 1
 
+    def get_title(self):
+        return docfile.get_category(None, self.name)
+
+    def get_order(self):
+        return docfile.get_order(None, self.name)
+
     def get_parent_title(self):
         return docfile.get_category(None, self.parent.name)
 
@@ -60,18 +80,61 @@ class tree:
 
 class docfile:
     category_map = {
+        # 第一层
         "doc": "Home",
-        "speech_scrips": "演讲稿",
-        "data_base": "数据库",
-        "command": "命令",
-        "encoding_schemes": "编码",
+        "math": "数学",
+        "language": "语言",
+        "linux": "linux 相关",
+        "network": "计算机网络",
+        "data_base": "数据库&存储",
+        "kubernetes": "k8s",
         "machine_learning": "机器学习",
-        "else": "杂项",
+        "encoding_schemes": "编码",
+        "project": "有用的项目",
+        "speech_scrips": "演讲稿",
+        "else": "其他",
+        # 其他层
+        "command": "命令",
+    }
+
+    order_map = {
+        # 第一层
+        "doc": 1,
+        "math": 2,
+        "language": 3,
+        "linux": 4,
+        "network": 5,
+        "data_base": 6,
+        "kubernetes": 7,
+        "machine_learning": 8,
+        "encoding_schemes": 9,
+        "project": 10,
+        "speech_scrips": 11,
+        "else": 12,
+        # 第二层 linux/
+        "command": 1,
+        # 第二层 data_base/
+        "mysql": 1,
+        "redis": 2,
+        "transaction_isolation_levels": 3,
+        # 第二层 language/
+        "markdown": 1,
+        "cpp": 2,
+        "golang": 3,
+        "python": 4,
+        # 第二层 machine_learning/
+        "nvidia": 1,
     }
 
     def get_category(self, key):  # 将文件名转化为显示的名字
         if key in docfile.category_map:
             return docfile.category_map[key]
+        return key
+
+    #  数字的总会排在字符串的前面
+    def get_order(self, key):
+        if key in docfile.order_map:
+            return docfile.order_map[key]
         return key
 
     def __init__(self, root, filename) -> None:
@@ -102,21 +165,35 @@ class docfile:
 
 def deep_first_gen_index_file(p):  # 为所有文件夹生成一个索引文件，如果还没有的话
     index_path = "%s/index.md" % (p.path)
-    if not p.file and not os.path.exists(index_path):  # 是文件夹且没有index文件则自动生成
+    if not p.file and not os.path.exists(
+        index_path
+    ):  # 是文件夹且没有index文件则自动生成
         with open(index_path, "w") as f:
+            has_children = "false"
+            if len(p.data) > 0:
+                has_children = "true"
             if p.depth == 1:
-                f.write(home_head % (docfile.get_category(None, p.name)))
+                f.write(home_head % (p.get_title(), p.get_order()))
             elif p.depth == 2:  # 一级标题不设置parent
-                f.write(category_head % (docfile.get_category(None, p.name)))
-            else:
-                has_children = "false"
-                if len(p.data) > 0:
-                    has_children = "true"
+                f.write(category_head % (p.get_title(), p.get_order()))
+            elif p.depth == 3:
                 f.write(
                     category_head_with_parent
                     % (
-                        docfile.get_category(None, p.name),
-                        docfile.get_category(None, p.parent.name),
+                        p.get_title(),
+                        p.get_order(),
+                        p.get_parent_title(),
+                        has_children,
+                    )
+                )
+            else:
+                f.write(
+                    category_head_with_grand_parent
+                    % (
+                        p.get_title(),
+                        p.get_order(),
+                        p.get_parent_title(),
+                        p.get_grand_parent_title(),
                         has_children,
                     )
                 )
@@ -135,7 +212,9 @@ def deep_first_gen_index_file(p):  # 为所有文件夹生成一个索引文件�
     return
 
 
-def deep_first_gen_index_content(p, base_depth, lines):  # 生成给定节点下的索引文件的内容，储存在lines中
+def deep_first_gen_index_content(
+    p, base_depth, lines
+):  # 生成给定节点下的索引文件的内容，储存在lines中
     if p.file:
         path = p.file.path[1:][:-3]  # remove ./doc and .md
         lines.append("- [%s](%s)\n" % (p.file.title, path))
@@ -157,7 +236,7 @@ def deep_first_add_head(p: tree):  # 给md文件添加头
             old_content = f.read()
             # 将新内容添加到文件开头
             f.seek(0)
-            if p.depth == 4:  # 目前目录只支持三层，depth 2 对应1级标题，因此depth 4 对应三级标题
+            if p.depth >= 4:  # 对于多级结构添加grand_parent字段避免歧义
                 f.write(
                     default_head_with_grand_parent
                     % (p.file.title, p.get_parent_title(), p.get_grand_parent_title())
