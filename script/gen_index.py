@@ -273,12 +273,37 @@ def gen_tree(file_list) -> tree:
     return root
 
 
+def replace_math_markers_in_files(docfile_list):
+    """
+    Replaces ```math xxx ``` with $$ xxx $$ in the given list of files.
+
+    Parameters:
+    file_paths (list): A list of file paths to process.
+    """
+    pattern = re.compile(r"```math\s(.*?)\s```", re.DOTALL)
+
+    for one_docfile in docfile_list:
+        try:
+            with open(one_docfile.path, "r", encoding="utf-8") as file:
+                content = file.read()
+
+            new_content = pattern.sub(r"$$\1$$", content)
+
+            with open(one_docfile.path, "w", encoding="utf-8") as file:
+                file.write(new_content)
+
+        except Exception as e:
+            print(f"Error processing file {one_docfile}: {e}")
+
+
 def main():
     base = "./doc"
     file_list = findAllFile(base)
     r = gen_tree(file_list)
     deep_first_add_head(r)
     deep_first_gen_index_file(r)
+    # 转换公式段的格式
+    replace_math_markers_in_files(file_list)
 
 
 if __name__ == "__main__":
